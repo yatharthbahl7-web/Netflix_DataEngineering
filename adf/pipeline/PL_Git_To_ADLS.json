@@ -1,0 +1,195 @@
+{
+	"name": "PL_Git_To_ADLS",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get_Metadata",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://github.com/anshlambagit/Netflix_Azure_Data_Engineering_Project/blob/main/RawData_AND_Notebooks"
+				}
+			},
+			{
+				"name": "Metadata_Store",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "p_metadata",
+					"value": {
+						"value": "@activity('Get_Metadata').output.Response",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Validate_File_Presence",
+				"type": "Validation",
+				"dependsOn": [
+					{
+						"activity": "Metadata_Store",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_Raw",
+						"type": "DatasetReference"
+					},
+					"timeout": "0.12:00:00",
+					"sleep": 10
+				}
+			},
+			{
+				"name": "File_Selector",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Validate_File_Presence",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.p_Array",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "CD_Git_ADls",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_Github",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@item().file_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_Netflix",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_Folder": {
+											"value": "@item().folder_name",
+											"type": "Expression"
+										},
+										"p_File": {
+											"value": "@item().file_name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"p_Array": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"folder_name": "netflix_cast",
+						"file_name": "netflix_cast.csv"
+					},
+					{
+						"folder_name": "netflix_category",
+						"file_name": "netflix_category.csv"
+					},
+					{
+						"folder_name": "netflix_countries",
+						"file_name": "netflix_countries.csv"
+					},
+					{
+						"folder_name": "netflix_directors",
+						"file_name": "netflix_directors.csv"
+					}
+				]
+			}
+		},
+		"variables": {
+			"p_metadata": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-11-16T21:08:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

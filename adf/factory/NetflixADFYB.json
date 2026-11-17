@@ -1,0 +1,15 @@
+{
+	"name": "NetflixADFYB",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "35110564-57cf-4af1-9bb3-86d3c989b4af",
+		"tenantId": "5df7bfe8-c66e-4465-9a6b-7636fd5c6dd8"
+	}
+}

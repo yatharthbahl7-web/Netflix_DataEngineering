@@ -1,0 +1,13 @@
+{
+	"name": "LS_Git_Web_Cast_Source",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://github.com/anshlambagit/Netflix_Azure_Data_Engineering_Project/raw/refs/heads/main/RawData_AND_Notebooks/",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
